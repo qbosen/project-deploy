@@ -4,18 +4,29 @@ import paramiko
 
 class Project:
     def __init__(self, config):
-        self.local_project_path = config["project_path"]
-        self.local_jar_path = config["project_path"] + '/build/libs/' + config["jar_name"]
-        self.remote_project_path = config["remote_project_path"]
-        self.remote_jar_path = f'{config["remote_project_path"]}/lib/{config["jar_name"]}'
+        local_relative_jar_path = config["local_relative_jar_path"]
+        remote_relative_jar_path = config["remote_relative_jar_path"]
+        gradle_run_script = config["gradle_run_script"]
+        remote_project_path = config["remote_project_path"]
+        local_project_path = config["project_path"]
+        jar_name = config["jar_name"]
+        remote_host = config["remote_host"]
+        project_name = config["project_name"]
+        username = config["remote_user"]
+        passwd = config["remote_passwd"]
+        vm_port = config["vm_port"]
+
+        self.local_jar_path = local_project_path + local_relative_jar_path + jar_name
+        self.remote_jar_path = f'{remote_project_path}{remote_relative_jar_path}{jar_name}'
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.ssh.connect(config["remote_host"], username=config["remote_user"], password=config["remote_passwd"])
-        transport = paramiko.Transport((config["remote_host"], 22))
-        transport.connect(username=config["remote_user"], password=config["remote_passwd"])
+        self.ssh.connect(remote_host, username=username, password=passwd)
+        transport = paramiko.Transport((remote_host, 22))
+        transport.connect(username=username, password=passwd)
         self.sftp = paramiko.SFTPClient.from_transport(transport)
-        self.java_opts = f'-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address={config["vm_port"]}'
-        self.api_path = f'{config["remote_project_path"]}/bin/{config["project_name"]}'
+        self.java_opts = f'-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address={vm_port}'
+        self.api_path = f'{remote_project_path}/bin/{project_name}'
+        self.compile_command = f'cd {local_project_path}; {gradle_run_script}'
 
     @staticmethod
     def run_local(command):
@@ -29,7 +40,7 @@ class Project:
             print(line)
 
     def build_project(self):
-        self.run_local(f'cd {self.local_project_path}; ./gradlew clean build')
+        self.run_local(self.compile_command)
         print(">>" * 10, "build finish")
 
     def upload_jar(self):

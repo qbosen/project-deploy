@@ -16,12 +16,12 @@ def load_configs(config_file="config.ini"):
 
 
 def run(configs):
-    build_path = set()
+    command_set = set()
     for conf in configs:
         pj = Project(conf)
-        # 同项目只编译一次
-        if pj.local_project_path not in build_path:
-            build_path.add(pj.local_project_path)
+        # 编译语句 只运行一次
+        if pj.compile_command not in command_set:
+            command_set.add(pj.compile_command)
             pj.build_project()
         pj.upload_jar()
         pj.restart_project()
