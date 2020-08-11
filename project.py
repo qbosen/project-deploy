@@ -15,6 +15,8 @@ class Project:
         username = config["remote_user"]
         passwd = config["remote_passwd"]
         vm_port = config["vm_port"]
+        run_params = config["run_params"]
+        env_opts = config["env_opts"]
 
         self.local_jar_path = local_project_path + local_relative_jar_path + jar_name
         self.remote_jar_path = f'{remote_project_path}{remote_relative_jar_path}{jar_name}'
@@ -27,6 +29,8 @@ class Project:
         self.java_opts = f'-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address={vm_port}'
         self.api_path = f'{remote_project_path}/bin/{project_name}'
         self.compile_command = f'cd {local_project_path}; {gradle_run_script}'
+        self.run_params = run_params
+        self.env_opts = env_opts
 
     @staticmethod
     def run_local(command):
@@ -40,15 +44,15 @@ class Project:
             print(line)
 
     def build_project(self):
-        self.run_local(self.compile_command)
         print(">>" * 10, "build finish")
+        self.run_local(self.compile_command)
 
     def upload_jar(self):
-        self.sftp.put(self.local_jar_path, self.remote_jar_path)
         print(">> upload file from %s to %s" % (self.local_jar_path, self.remote_jar_path))
+        self.sftp.put(self.local_jar_path, self.remote_jar_path)
 
     def restart_project(self):
-        self.run_remote(f'JAVA_OPTS={self.java_opts} {self.api_path} restart')
+        self.run_remote(f'JAVA_OPTS={self.java_opts} {self.env_opts} {self.api_path} restart {self.run_params}')
 
     def close(self):
         self.sftp.close()
