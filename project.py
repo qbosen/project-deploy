@@ -17,7 +17,7 @@ class Project:
         vm_port = config["vm_port"]
         run_params = config["run_params"]
         env_opts = config["env_opts"]
-
+        self.remote_host = remote_host
         self.local_jar_path = local_project_path + local_relative_jar_path + jar_name
         self.remote_jar_path = f'{remote_project_path}{remote_relative_jar_path}{jar_name}'
         self.ssh = paramiko.SSHClient()
@@ -38,7 +38,7 @@ class Project:
         system(command)
 
     def run_remote(self, command):
-        print(">> ", command)
+        print(self.remote_host, ">> ", command)
         std_in, std_out, std_err = self.ssh.exec_command(command)
         for line in std_out.readlines():
             print(line)
