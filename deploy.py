@@ -23,8 +23,10 @@ def run(configs):
         if pj.compile_command not in command_set:
             command_set.add(pj.compile_command)
             pj.build_project()
+        # springBoot 项目不能先替换jar包再重启。会导致类加载器读取类失败
+        pj.stop_project()
         pj.upload_jar()
-        pj.restart_project()
+        pj.start_project()
         pj.close()
 
 

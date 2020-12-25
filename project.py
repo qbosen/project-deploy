@@ -54,6 +54,12 @@ class Project:
     def restart_project(self):
         self.run_remote(f'JAVA_OPTS={self.java_opts} {self.env_opts} {self.api_path} restart {self.run_params}')
 
+    def stop_project(self):
+        self.run_remote(f'JAVA_OPTS={self.java_opts} {self.env_opts} {self.api_path} stop')
+
+    def start_project(self):
+        self.run_remote(f'JAVA_OPTS={self.java_opts} {self.env_opts} {self.api_path} start {self.run_params}')
+
     def close(self):
         self.sftp.close()
         self.ssh.close()
