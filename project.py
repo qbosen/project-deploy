@@ -22,10 +22,11 @@ class Project:
         self.remote_jar_path = f'{remote_project_path}{remote_relative_jar_path}{jar_name}'
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.ssh.connect(remote_host, username=username, password=passwd)
-        transport = paramiko.Transport((remote_host, 22))
-        transport.connect(username=username, password=passwd)
-        self.sftp = paramiko.SFTPClient.from_transport(transport)
+        # self.ssh.connect(remote_host, username=username, password=passwd)
+        self.transport = paramiko.Transport((remote_host, 22))
+        self.transport.connect(username=username, password=passwd)
+        self.ssh._transport = self.transport
+        self.sftp = paramiko.SFTPClient.from_transport(self.transport)
         self.java_opts = f'-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address={vm_port}'
         self.api_path = f'{remote_project_path}/bin/{project_name}'
         self.compile_command = f'cd {local_project_path}; {gradle_run_script}'
@@ -61,5 +62,4 @@ class Project:
         self.run_remote(f'JAVA_OPTS={self.java_opts} {self.env_opts} {self.api_path} start {self.run_params}')
 
     def close(self):
-        self.sftp.close()
-        self.ssh.close()
+        self.transport.close()
