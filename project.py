@@ -2,6 +2,14 @@ from os import system
 import paramiko
 
 
+class FastTransport(paramiko.Transport):
+    def __init__(self, sock):
+        super(FastTransport, self).__init__(sock)
+        self.default_window_size = 2147483647
+        self.packetizer.REKEY_BYTES = pow(2, 40)
+        self.packetizer.REKEY_PACKETS = pow(2, 40)
+
+
 class Project:
     def __init__(self, config):
         local_relative_jar_path = config["local_relative_jar_path"]
@@ -23,7 +31,7 @@ class Project:
         self.ssh = paramiko.SSHClient()
         self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         # self.ssh.connect(remote_host, username=username, password=passwd)
-        self.transport = paramiko.Transport((remote_host, 22))
+        self.transport = FastTransport((remote_host, 22))
         self.transport.connect(username=username, password=passwd)
         self.ssh._transport = self.transport
         self.sftp = paramiko.SFTPClient.from_transport(self.transport)
